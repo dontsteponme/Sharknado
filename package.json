@@ -1,0 +1,10 @@
+{
+  "name": "fakepi",
+  "version": "0.1.0",
+  "description": "Quick and dirty api creator",
+  "dependencies" : {
+    "mongodb"   :  "*",
+    "mongoose" :  "*",
+    "monk": "*"
+  }
+}
