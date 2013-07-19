@@ -13,9 +13,20 @@ Sharknado is a node server with mongoDB that allows for rapid prototyping. Just 
 - Change variables in app.js to configure server
 - start server (node app.js)
 
-*Create/Add to a Collection*
-Post data to a url (e.g. localhost:1337/collectionName )
+*Create to a Collection*
+POST data to a url (e.g. localhost:1337/collectionName )
 
-*Get from Collection*
+*Read from Collection*
 _All_ >> Get from URL (e.g. localhost:1337/collectionName)
 _Filter_ >> Add key/value parameters (e.g. localhost:1337/collectionName?name=Ryan)
+
+*Update a Document#
+PUT data to filtered url (e.g. localhost:1337/collectionName?name=Ryan)
+_NOTE:_ If more than one document matches filter, each will be updated (feature?)
+
+*Delete*
+A document: DELETE to filtered url (e.g. localhost:1337/collectionName?name=Ryan)
+_NOTE:_ If more than one document matches filter, each will be deleted (feature?)
+
+A collection: Delete to url (e.g. localhost:1337/collectionName)
+_NOTE:_ Poof! Your collection is gone very easily, so be careful
