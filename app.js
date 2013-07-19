@@ -29,7 +29,7 @@ var Rest = function(item){
   var exports = function(req, res){
     var data = '',
         myUrl = url.parse(req.url),
-        myCollection = db.get(myUrl.pathname.replace(/\//g, ''));
+        myCollection = db.get(myUrl.pathname.replace(/\//, '').split('/')[0]);
 
     switch (req.method) {
       case 'POST':
@@ -52,6 +52,32 @@ var Rest = function(item){
               timestamp: new Date().getTime()
             });
             res.end( JSON.stringify(docs) );
+          });
+        });
+        break;
+      case 'PUT':
+        var query = {};
+        if(myUrl.query){
+          query = postParser(myUrl.query);
+        }
+        req.on('data', function(chunk){
+          data += chunk;
+        });
+        req.on('end', function(){
+          data = postParser(data);
+          myCollection.find(query, function (err, docs){
+            for(var i=0; i < docs.length; i++) {
+              for(var key in data) {
+                docs[i][key] = data[key];
+                myCollection.update({_id: docs[i]._id}, docs[i], function(updateErr, updateDocs){
+                  if (updateErr) {
+                    res.writeHead(500);
+                    return '{message:"Could not update document"}';
+                  }
+                  res.end( '{status:"OK",message:"Document(s) updated!"}' );
+                });
+              }
+            }
           });
         });
         break;
@@ -84,14 +110,22 @@ db.driver.collectionNames(function(e,names){
 // start server
 http.createServer(function (req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
-  var pathName = url.parse(req.url).pathname.replace(/\//g, '');
-  // add request/response to fakePI object
-  if(!paths[pathName]) {
-    if(req.method !== 'POST') {
-      res.end('{status:"ERROR",message:"404: collection not found"}')
-    }
-    paths[pathName] = new Rest();
+  // get url path split for possible future use
+  var pathName = url.parse(req.url).pathname.replace(/^\//, '').split('/');
+  // for now, throw a 404 if pathname is more than one level deep
+  if(pathName.length > 1) {
+    res.writeHead(404);
+    res.end('{status:"ERROR",message:"Sharknado does not support this pattern yet."}');
   }
-  paths[pathName].call(this, req, res);
+  // add request/response to Sharknado object
+  if(!paths[pathName[0]]) {
+    if(req.method !== 'POST') {
+      res.writeHead(404);
+      res.end('{status:"ERROR",message:"404: collection not found"}');
+      return;
+    }
+    paths[pathName[0]] = new Rest();
+  }
+  paths[pathName[0]].call(this, req, res);
   // res.end();
 }).listen(port, hostName);

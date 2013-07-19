@@ -18,4 +18,4 @@ Post data to a url (e.g. localhost:1337/collectionName )
 
 *Get from Collection*
 _All_ >> Get from URL (e.g. localhost:1337/collectionName)
-_Filter_ >> Add parameters (e.g. localhost:1337/collectionName?name=Ryan)
+_Filter_ >> Add key/value parameters (e.g. localhost:1337/collectionName?name=Ryan)
