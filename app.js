@@ -18,7 +18,9 @@ var postParser = function(data) {
   // iterate through array and build object
   for (var i=0; i < data.length; i++){
     dataArray = data[i].split('=');
-    obj[dataArray[0]] = decodeURIComponent(dataArray[1].replace(/\+/, ' '));
+    if(dataArray.length > 1){
+      obj[dataArray[0]] = decodeURIComponent(dataArray[1].replace(/\+/, ' '));
+    }
   }
   return obj;
 };
@@ -29,8 +31,14 @@ var Rest = function(item){
   var exports = function(req, res){
     var data = '',
         myUrl = url.parse(req.url),
-        myCollection = db.get(myUrl.pathname.replace(/\//, '').split('/')[0]);
+        myCollection = db.get(myUrl.pathname.replace(/\//, '').split('/')[0]),
+        query = {},
+        empty = true;
 
+    if(myUrl.query){
+      query = postParser(myUrl.query);
+      empty = false;
+    }
     switch (req.method) {
       case 'POST':
         // add to collection
@@ -56,10 +64,6 @@ var Rest = function(item){
         });
         break;
       case 'PUT':
-        var query = {};
-        if(myUrl.query){
-          query = postParser(myUrl.query);
-        }
         req.on('data', function(chunk){
           data += chunk;
         });
@@ -81,11 +85,24 @@ var Rest = function(item){
           });
         });
         break;
-      default:
-        var query = {};
-        if(myUrl.query){
-          query = postParser(myUrl.query);
+      case 'DELETE':
+        if(empty) {
+          // drop collection
+          myCollection.drop(function(data){
+            res.end('{status:"OK",message:"Collection Dropped!"}')
+          });
+        } else {
+          return;
+          myCollection.remove(query, function (err, docs){
+            if (err) {
+              res.writeHead(500);
+              return '{message:"Could not delete document"}';
+            }
+            res.end( '{status:"OK",message:"Document deleted!"}' );
+          });
         }
+        break;
+      default:
         myCollection.find(query, function (err, docs){
           res.end( JSON.stringify(docs) );
         });
