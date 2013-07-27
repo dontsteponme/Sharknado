@@ -51,7 +51,9 @@ var Rest = function(item){
           myCollection.insert(data);
           myCollection.find({}, function (err, docs){
             if(err) {
-              docs.status = "ERROR";
+              docs.status = 'ERROR';
+              docs.statusCode = 404;
+              docs.message = 'Could not find requested collection.'
               res.end( JSON.stringify(err) );
               return;
             }
@@ -76,7 +78,7 @@ var Rest = function(item){
                 myCollection.update({_id: docs[i]._id}, docs[i], function(updateErr, updateDocs){
                   if (updateErr) {
                     res.writeHead(500);
-                    return '{message:"Could not update document"}';
+                    return '{status:"ERROR", statusCode: 500, message:"Could not update document"}';
                   }
                   res.end( '{status:"OK",message:"Document(s) updated!"}' );
                 });
@@ -96,9 +98,9 @@ var Rest = function(item){
           myCollection.remove(query, function (err, docs){
             if (err) {
               res.writeHead(500);
-              return '{message:"Could not delete document"}';
+              return '{status:"ERROR", statusCode: 500, message:"Could not delete document"}';
             }
-            res.end( '{status:"OK",message:"Document deleted!"}' );
+            res.end( '{status:"OK", statusCode: 200, message:"Document deleted!"}' );
           });
         }
         break;
@@ -132,13 +134,13 @@ http.createServer(function (req, res) {
   // for now, throw a 404 if pathname is more than one level deep
   if(pathName.length > 1) {
     res.writeHead(404);
-    res.end('{status:"ERROR",message:"Sharknado does not support this pattern yet."}');
+    res.end('{status:"ERROR", statusCode: 404, message:"Sharknado does not support this pattern yet."}');
   }
   // add request/response to Sharknado object
   if(!paths[pathName[0]]) {
     if(req.method !== 'POST') {
       res.writeHead(404);
-      res.end('{status:"ERROR",message:"404: collection not found"}');
+      res.end('{status:"ERROR", statusCode: 404, message:"404: collection not found"}');
       return;
     }
     paths[pathName[0]] = new Rest();
